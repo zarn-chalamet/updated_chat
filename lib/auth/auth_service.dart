@@ -37,6 +37,7 @@ class AuthService {
         'username': username,
         'pf_path':
             "https://firebasestorage.googleapis.com/v0/b/app-chat-97ecb.appspot.com/o/Profiles%2Fprofile_image.jpg?alt=media&token=6ffca4f1-2e1c-4d5c-950b-0e1bd7b2076c",
+        'lastActive': Timestamp.now(),
       });
 
       return userCredential;
@@ -84,6 +85,45 @@ class AuthService {
       return userDoc['username'];
     } catch (e) {
       throw Exception('Error fetching username: $e');
+    }
+  }
+
+  //update user's last active time
+  Future<void> updateUserLastActive(String userID) async {
+    await FirebaseFirestore.instance.collection('Users').doc(userID).update({
+      'lastActive': Timestamp.now(),
+    });
+  }
+
+  // Future<bool> isUserActive(String userID) async {
+  //   DocumentSnapshot userDoc =
+  //       await FirebaseFirestore.instance.collection('Users').doc(userID).get();
+  //   Timestamp lastActive = userDoc['lastActive'];
+
+  //   // Define the active threshold (e.g., 5 minutes)
+  //   Duration activeThreshold = Duration(minutes: 5);
+
+  //   return Timestamp.now().toDate().difference(lastActive.toDate()) <
+  //       activeThreshold;
+  // }
+
+  Future<String> getLastActiveTime(String userID) async {
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('Users').doc(userID).get();
+    Timestamp lastActive = userDoc['lastActive'];
+
+    Duration difference =
+        Timestamp.now().toDate().difference(lastActive.toDate());
+
+    if (difference.inMinutes < 1) {
+      return "Active now";
+    } else if (difference.inMinutes < 60) {
+      return "Active ${difference.inMinutes}m ago";
+    } else if (difference.inHours < 24) {
+      return "Active ${difference.inHours}h ago";
+    } else {
+      int days = difference.inDays;
+      return "Active ${days}d ago";
     }
   }
 

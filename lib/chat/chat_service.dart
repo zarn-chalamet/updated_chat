@@ -93,6 +93,9 @@ class ChatService {
         .doc(chatRoomID)
         .collection('messages')
         .add(newMessage.toMap());
+
+    // Update last active time after sending a message
+    await _authService.updateUserLastActive(currentUserID);
   }
 
   //get messages

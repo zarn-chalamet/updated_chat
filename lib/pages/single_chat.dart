@@ -4,12 +4,13 @@ import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/chat_service.dart';
 import 'package:app_chat/chat/photo_service.dart';
 import 'package:app_chat/pages/receiver_profile.dart';
+import 'package:app_chat/utils/intl.dart';
 import 'package:app_chat/utils/message_box.dart';
 import 'package:app_chat/utils/snack_bar.dart';
-import 'package:app_chat/utils/textfield.dart';
 import 'package:app_chat/utils/video_player_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class SingleChatPage extends StatefulWidget {
   final String receiverMail;
@@ -50,6 +51,9 @@ class _SingleChatPageState extends State<SingleChatPage> {
         () => scrollDown(),
       );
     });
+
+    // Update the user's last active time when they open the chat screen
+    _authService.updateUserLastActive(_authService.getCurrentUserID());
   }
 
   @override
@@ -171,9 +175,31 @@ class _SingleChatPageState extends State<SingleChatPage> {
               }
             },
           ),
-          subtitle: Text(
-            "Active Now",
-            style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+          subtitle: FutureBuilder<String>(
+            future: _authService.getLastActiveTime(widget.receiverID),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Text(
+                  "Checking...",
+                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+                );
+              } else if (snapshot.hasError) {
+                return Text(
+                  "Status unknown",
+                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+                );
+              } else if (snapshot.hasData) {
+                return Text(
+                  snapshot.data!,
+                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+                );
+              } else {
+                return Text(
+                  "Inactive",
+                  style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+                );
+              }
+            },
           ),
         ),
         actions: [
@@ -202,68 +228,96 @@ class _SingleChatPageState extends State<SingleChatPage> {
       stream: _chatService.getMessages(widget.receiverID, senderID),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          print("Error in StreamBuilder: ${snapshot.error}");
           return Center(child: Text("Error: ${snapshot.error}"));
         }
 
-        // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
-          print("StreamBuilder is loading...");
           return Center(child: Text('Loading...'));
         }
 
-        // Ensure snapshot has data
-        if (!snapshot.hasData) {
-          print("No data found in StreamBuilder.");
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Center(child: Text('No messages found.'));
         }
 
-        // Check if the data is empty
-        if (snapshot.data!.docs.isEmpty) {
-          print("Snapshot data is empty.");
-          return Center(child: Text('No messages found.'));
-        }
-
-        // Return ListView
-        print("Messages received: ${snapshot.data!.docs.length}");
-        return ListView(
+        List<DocumentSnapshot> docs = snapshot.data!.docs;
+        return ListView.builder(
           controller: _scrollController,
-          children:
-              snapshot.data!.docs.map((doc) => _buildMessageItem(doc)).toList(),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            DocumentSnapshot currentDoc = docs[index];
+            DocumentSnapshot? previousDoc = index > 0 ? docs[index - 1] : null;
+
+            return _buildMessageItem(
+              currentDoc,
+              previousDoc != null
+                  ? previousDoc['timestamp'] as Timestamp
+                  : null,
+            );
+          },
         );
       },
     );
   }
 
   // Build message item
-  Widget _buildMessageItem(DocumentSnapshot doc) {
+  Widget _buildMessageItem(DocumentSnapshot doc, Timestamp? previousTimestamp) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    Timestamp currentTimestamp = data['timestamp'] as Timestamp;
 
     bool isCurrentUser = data['senderID'] == _authService.getCurrentUserID();
+    bool showDateLabel =
+        shouldShowDateLabel(currentTimestamp, previousTimestamp);
 
     var alignment =
         isCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
-    return Container(
-      margin: EdgeInsets.all(5),
-      alignment: alignment,
-      child: Column(
-        crossAxisAlignment:
-            isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          if (data['message'] != null)
-            MessageBox(isCurrentUser: isCurrentUser, message: data['message']!),
-          if (data['imageUrl'] != null)
-            Image.network(
-              data['imageUrl']!,
-              width: 200,
-              height: 200,
-              fit: BoxFit.cover,
+
+    return Column(
+      crossAxisAlignment:
+          isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        if (showDateLabel)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Center(
+              child: Text(
+                formatMessageTimestamp(currentTimestamp),
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
             ),
-          if (data['videoUrl'] != null)
-            // You can use a video player package to display the video, e.g., `video_player`
-            VideoPlayerWidget(videoUrl: data['videoUrl']),
-        ],
-      ),
+          ),
+        Container(
+          margin: EdgeInsets.all(5),
+          alignment: alignment,
+          child: Column(
+            crossAxisAlignment: isCurrentUser
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
+            children: [
+              if (data['message'] != null)
+                MessageBox(
+                  isCurrentUser: isCurrentUser,
+                  message: data['message']!,
+                ),
+              if (data['imageUrl'] != null)
+                Image.network(
+                  data['imageUrl']!,
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              if (data['videoUrl'] != null)
+                VideoPlayerWidget(videoUrl: data['videoUrl']),
+              // Padding(
+              //   padding: const EdgeInsets.only(top: 4.0),
+              //   child: Text(
+              //     formatMessageTimestamp(currentTimestamp),
+              //     style: TextStyle(fontSize: 12, color: Colors.grey),
+              //   ),
+              // ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
