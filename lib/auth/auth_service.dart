@@ -1,3 +1,4 @@
+import 'package:app_chat/chat/photo_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -5,6 +6,8 @@ class AuthService {
   // instance of auth
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final PhotoService _photoService = PhotoService();
 
   // sign in
   Future<UserCredential> signInWithEmailPassword(String email, password) async {
@@ -125,6 +128,19 @@ class AuthService {
       int days = difference.inDays;
       return "Active ${days}d ago";
     }
+  }
+
+  Future<Map<String, dynamic>> getUserProfileAndStatus(String userID) async {
+    String profileUrl = await _photoService.getProfileUrl(userID);
+    String lastActiveTime = await getLastActiveTime(userID);
+
+    // Determine if the user is active now
+    bool isActive = lastActiveTime == "Active Now";
+
+    return {
+      'profileUrl': profileUrl,
+      'isActive': isActive,
+    };
   }
 
   // errors

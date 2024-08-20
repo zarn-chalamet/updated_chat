@@ -39,27 +39,49 @@ class _ReceiverProfileState extends State<ReceiverProfile> {
             SizedBox(
               height: 20,
             ),
-            FutureBuilder<String>(
-              future: _photoService.getProfileUrl(
-                  widget.receiverID), // Use the method you provided
+            FutureBuilder<Map<String, dynamic>>(
+              future: _authService.getUserProfileAndStatus(widget
+                  .receiverID), // Combine the future to get both profile URL and activity status
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircleAvatar(
                     backgroundImage: AssetImage(
                         'assets/profile/profile_male.jpg'), // Placeholder image
-                    radius: 55,
+                    radius: 20,
                   );
                 } else if (snapshot.hasError || !snapshot.hasData) {
                   return CircleAvatar(
                     backgroundImage: AssetImage(
                         'assets/profile/profile_male.jpg'), // Fallback image in case of error
-                    radius: 55,
+                    radius: 20,
                   );
                 } else {
-                  return CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        snapshot.data!), // Load the profile image from the URL
-                    radius: 55,
+                  String profileUrl = snapshot.data!['profileUrl'];
+                  bool isActive = snapshot.data!['isActive'];
+
+                  return Stack(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: NetworkImage(
+                            profileUrl), // Load the profile image from the URL
+                        radius: 55,
+                      ),
+                      if (isActive) // Show green circle only if the user is active
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 5,
+                            child: Center(
+                              child: CircleAvatar(
+                                backgroundColor: Colors.green,
+                                radius: 4,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   );
                 }
               },

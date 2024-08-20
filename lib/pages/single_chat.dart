@@ -133,9 +133,9 @@ class _SingleChatPageState extends State<SingleChatPage> {
               ),
             );
           },
-          leading: FutureBuilder<String>(
-            future: _photoService.getProfileUrl(
-                widget.receiverID), // Use the method you provided
+          leading: FutureBuilder<Map<String, dynamic>>(
+            future: _authService.getUserProfileAndStatus(widget
+                .receiverID), // Combine the future to get both profile URL and activity status
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return CircleAvatar(
@@ -150,10 +150,32 @@ class _SingleChatPageState extends State<SingleChatPage> {
                   radius: 20,
                 );
               } else {
-                return CircleAvatar(
-                  backgroundImage: NetworkImage(
-                      snapshot.data!), // Load the profile image from the URL
-                  radius: 20,
+                String profileUrl = snapshot.data!['profileUrl'];
+                bool isActive = snapshot.data!['isActive'];
+
+                return Stack(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: NetworkImage(
+                          profileUrl), // Load the profile image from the URL
+                      radius: 20,
+                    ),
+                    if (isActive) // Show green circle only if the user is active
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          radius: 5,
+                          child: Center(
+                            child: CircleAvatar(
+                              backgroundColor: Colors.green,
+                              radius: 4,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 );
               }
             },
