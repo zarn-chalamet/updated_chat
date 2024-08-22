@@ -343,34 +343,78 @@ class _GroupChatPageState extends State<GroupChatPage> {
               // color: isCurrentUser ? Colors.blue[100] : Colors.grey[200],
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Column(
-              crossAxisAlignment: isCurrentUser
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: isCurrentUser
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
               children: [
-                // Check for text message
-                if (data['textMsg'] != null && data['textMsg']!.isNotEmpty)
-                  MessageBox(
-                    isCurrentUser: isCurrentUser,
-                    message: data['textMsg']!,
-                  ),
-                // Check for image URL
-                if (data['imageUrl'] != null && data['imageUrl']!.isNotEmpty)
+                if (!isCurrentUser) // Show profile image for other users
                   Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: Image.network(
-                      data['imageUrl']!,
-                      width: 200,
-                      height: 200,
-                      fit: BoxFit.cover,
+                    padding: const EdgeInsets.only(
+                        right: 8.0), // Space between image and message
+                    child: FutureBuilder<String>(
+                      future: _photoService.getProfileUrl(_authService
+                          .getCurrentUserID()), // Use the method you provided
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return CircleAvatar(
+                            backgroundImage: AssetImage(
+                                'assets/profile/profile_male.jpg'), // Placeholder image
+                            radius: 20,
+                          );
+                        } else if (snapshot.hasError || !snapshot.hasData) {
+                          return CircleAvatar(
+                            backgroundImage: AssetImage(
+                                'assets/profile/profile_male.jpg'), // Fallback image in case of error
+                            radius: 20,
+                          );
+                        } else {
+                          return CircleAvatar(
+                            backgroundImage: NetworkImage(snapshot
+                                .data!), // Load the profile image from the URL
+                            radius: 20,
+                          );
+                        }
+                      },
                     ),
                   ),
-                // Check for video URL
-                if (data['videoUrl'] != null && data['videoUrl']!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: VideoPlayerWidget(videoUrl: data['videoUrl']),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: isCurrentUser
+                        ? CrossAxisAlignment.end
+                        : CrossAxisAlignment.start,
+                    children: [
+                      // Check for text message
+                      if (data['textMsg'] != null &&
+                          data['textMsg']!.isNotEmpty)
+                        MessageBox(
+                          isCurrentUser: isCurrentUser,
+                          message: data['textMsg']!,
+                        ),
+                      // Check for image URL
+                      if (data['imageUrl'] != null &&
+                          data['imageUrl']!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: Image.network(
+                            data['imageUrl']!,
+                            width: 200,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      // Check for video URL
+                      if (data['videoUrl'] != null &&
+                          data['videoUrl']!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: VideoPlayerWidget(videoUrl: data['videoUrl']),
+                        ),
+                    ],
                   ),
+                ),
               ],
             ),
           ),

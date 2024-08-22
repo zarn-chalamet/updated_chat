@@ -286,13 +286,19 @@ class _SingleChatPageState extends State<SingleChatPage> {
     Timestamp currentTimestamp = data['timestamp'] as Timestamp;
 
     bool isCurrentUser = data['senderID'] == _authService.getCurrentUserID();
-
-    print('isCurrentUser ${isCurrentUser}');
     bool showDateLabel =
         shouldShowDateLabel(currentTimestamp, previousTimestamp);
 
+    // Determine the alignment for the message box
     var alignment =
         isCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
+
+    // Fetch the profile URL based on the sender ID
+    // String senderID = data['senderID'];
+    // String profileUrl = ''; // Default or placeholder image URL
+    // You can fetch the profile URL based on the sender ID here
+    // For example:
+    // profileUrl = await _authService.getUserProfileUrl(senderID);
 
     return Column(
       crossAxisAlignment:
@@ -311,25 +317,64 @@ class _SingleChatPageState extends State<SingleChatPage> {
         Container(
           margin: EdgeInsets.all(5),
           alignment: alignment,
-          child: Column(
-            crossAxisAlignment: isCurrentUser
-                ? CrossAxisAlignment.end
-                : CrossAxisAlignment.start,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment:
+                isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
-              if (data['message'] != null)
-                MessageBox(
-                  isCurrentUser: isCurrentUser,
-                  message: data['message']!,
+              if (!isCurrentUser) // Show profile image for other users
+                Padding(
+                  padding: const EdgeInsets.only(
+                      right: 8.0), // Space between image and message
+                  child: FutureBuilder<String>(
+                    future: _photoService.getProfileUrl(_authService
+                        .getCurrentUserID()), // Use the method you provided
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircleAvatar(
+                          backgroundImage: AssetImage(
+                              'assets/profile/profile_male.jpg'), // Placeholder image
+                          radius: 20,
+                        );
+                      } else if (snapshot.hasError || !snapshot.hasData) {
+                        return CircleAvatar(
+                          backgroundImage: AssetImage(
+                              'assets/profile/profile_male.jpg'), // Fallback image in case of error
+                          radius: 20,
+                        );
+                      } else {
+                        return CircleAvatar(
+                          backgroundImage: NetworkImage(snapshot
+                              .data!), // Load the profile image from the URL
+                          radius: 20,
+                        );
+                      }
+                    },
+                  ),
                 ),
-              if (data['imageUrl'] != null)
-                Image.network(
-                  data['imageUrl']!,
-                  width: 200,
-                  height: 200,
-                  fit: BoxFit.cover,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: isCurrentUser
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+                  children: [
+                    if (data['message'] != null)
+                      MessageBox(
+                        isCurrentUser: isCurrentUser,
+                        message: data['message']!,
+                      ),
+                    if (data['imageUrl'] != null)
+                      Image.network(
+                        data['imageUrl']!,
+                        width: 200,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    if (data['videoUrl'] != null)
+                      VideoPlayerWidget(videoUrl: data['videoUrl']),
+                  ],
                 ),
-              if (data['videoUrl'] != null)
-                VideoPlayerWidget(videoUrl: data['videoUrl']),
+              ),
             ],
           ),
         ),
