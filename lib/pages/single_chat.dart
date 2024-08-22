@@ -10,7 +10,6 @@ import 'package:app_chat/utils/snack_bar.dart';
 import 'package:app_chat/utils/video_player_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class SingleChatPage extends StatefulWidget {
   final String receiverMail;

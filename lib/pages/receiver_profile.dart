@@ -1,5 +1,4 @@
 import 'package:app_chat/auth/auth_service.dart';
-import 'package:app_chat/chat/photo_service.dart';
 import 'package:flutter/material.dart';
 
 class ReceiverProfile extends StatefulWidget {
@@ -14,7 +13,6 @@ class ReceiverProfile extends StatefulWidget {
 
 class _ReceiverProfileState extends State<ReceiverProfile> {
   final AuthService _authService = AuthService();
-  final PhotoService _photoService = PhotoService();
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -1,4 +1,3 @@
-import 'package:app_chat/model/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 

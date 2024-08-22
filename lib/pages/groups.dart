@@ -19,6 +19,7 @@ class _GroupPageState extends State<GroupPage> {
 
   List<Map<String, dynamic>> allUsers = [];
   List<Map<String, dynamic>> filteredUsers = [];
+  List<String> selectedUsers = [];
 
   String userImage =
       "https://firebasestorage.googleapis.com/v0/b/app-chat-97ecb.appspot.com/o/Profiles%2Fprofile_image.jpg?alt=media&token=6ffca4f1-2e1c-4d5c-950b-0e1bd7b2076c";
@@ -38,6 +39,19 @@ class _GroupPageState extends State<GroupPage> {
             .contains(searchController.text.toLowerCase());
       }).toList();
     });
+  }
+
+  void _toggleUserSelection(String userId) {
+    setState(() {
+      if (selectedUsers.contains(userId)) {
+        selectedUsers.remove(userId);
+      } else {
+        selectedUsers.add(userId);
+      }
+    });
+    print("+++++++++++++++++++++++++++++++++++++");
+    print(selectedUsers);
+    print("+++++++++++++++++++++++++++++++++++++");
   }
 
   @override
@@ -297,6 +311,9 @@ class _GroupPageState extends State<GroupPage> {
 
   Widget _buildUserListItem(
       Map<String, dynamic> userData, BuildContext context) {
+    // Check if the current user is selected
+    bool isSelected = selectedUsers.contains(userData['uid']);
+
     if (userData["email"] != _authService.getCurrentUserEmail()) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 2, top: 2, left: 40, right: 40),
@@ -305,18 +322,33 @@ class _GroupPageState extends State<GroupPage> {
           height: 50,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Color(0xFFCAEEEB),
+            color: isSelected ? Colors.lightBlueAccent : Color(0xFFCAEEEB),
           ),
-          child: Center(
-            child: ListTile(
-              leading: CircleAvatar(
-                radius: 15,
-                backgroundImage: NetworkImage(
-                    "https://firebasestorage.googleapis.com/v0/b/app-chat-97ecb.appspot.com/o/Profiles%2Fprofile_image.jpg?alt=media&token=6ffca4f1-2e1c-4d5c-950b-0e1bd7b2076c"),
-              ),
-              title: Text(userData['username'] ?? "No Name"),
-              subtitle: null,
-            ),
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Center(
+                child: ListTile(
+                  leading: CircleAvatar(
+                    radius: 15,
+                    backgroundImage: NetworkImage(userData['pf_path']),
+                  ),
+                  title: Text(userData['username'] ?? "No Name"),
+                  trailing: Checkbox(
+                    value: isSelected,
+                    onChanged: (value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedUsers.add(userData['uid']);
+                        } else {
+                          selectedUsers.remove(userData['uid']);
+                        }
+                      });
+                      print(selectedUsers);
+                    },
+                  ),
+                ),
+              );
+            },
           ),
         ),
       );
