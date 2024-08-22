@@ -286,6 +286,8 @@ class _SingleChatPageState extends State<SingleChatPage> {
     Timestamp currentTimestamp = data['timestamp'] as Timestamp;
 
     bool isCurrentUser = data['senderID'] == _authService.getCurrentUserID();
+
+    print('isCurrentUser ${isCurrentUser}');
     bool showDateLabel =
         shouldShowDateLabel(currentTimestamp, previousTimestamp);
 
@@ -328,13 +330,6 @@ class _SingleChatPageState extends State<SingleChatPage> {
                 ),
               if (data['videoUrl'] != null)
                 VideoPlayerWidget(videoUrl: data['videoUrl']),
-              // Padding(
-              //   padding: const EdgeInsets.only(top: 4.0),
-              //   child: Text(
-              //     formatMessageTimestamp(currentTimestamp),
-              //     style: TextStyle(fontSize: 12, color: Colors.grey),
-              //   ),
-              // ),
             ],
           ),
         ),

@@ -1,6 +1,6 @@
 import 'package:app_chat/auth/auth_gate.dart';
 import 'package:app_chat/firebase_options.dart';
-import 'package:app_chat/pages/groups.dart';
+import 'package:app_chat/pages/groups_page.dart';
 import 'package:app_chat/pages/home.dart';
 import 'package:app_chat/pages/profile.dart';
 import 'package:app_chat/pages/setting.dart';

@@ -1,7 +1,10 @@
 import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/chat_service.dart';
-import 'package:app_chat/utils/drawer.dart';
+import 'package:app_chat/chat/group_service.dart';
+import 'package:app_chat/pages/gp_chat.dart';
 import 'package:app_chat/utils/textfield.dart';
+import 'package:app_chat/utils/user_tile.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class GroupPage extends StatefulWidget {
@@ -14,6 +17,7 @@ class GroupPage extends StatefulWidget {
 class _GroupPageState extends State<GroupPage> {
   final ChatService _chatService = ChatService();
   final AuthService _authService = AuthService();
+  final GroupService _groupService = GroupService();
   final TextEditingController groupNameController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
 
@@ -56,11 +60,22 @@ class _GroupPageState extends State<GroupPage> {
     print("+++++++++++++++++++++++++++++++++++++");
   }
 
+  void _createGroup() async {
+    String groupName = groupNameController.text;
+    if (groupName.isNotEmpty && selectedUsers != []) {
+      await _groupService.createGroupInFireStore(groupName, selectedUsers);
+      Navigator.pop(context);
+    } else {
+      print("Enter group name!");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        leading: Text(''),
         title: const Text('CHAT APP'),
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -118,10 +133,54 @@ class _GroupPageState extends State<GroupPage> {
               thickness: 0.8,
             ),
           ),
+          Expanded(child: _buildGroupLists()),
         ],
       ),
       floatingActionButton: _FloatingButton(context),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  Widget _buildGroupLists() {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _groupService.getGroupStreams(
+          _authService.getCurrentUserID()), // Provide the user's ID
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        final groups = snapshot.data ?? [];
+
+        if (groups.isEmpty) {
+          return Text('No groups found');
+        }
+
+        return ListView.builder(
+          itemCount: groups.length,
+          itemBuilder: (context, index) {
+            final group = groups[index];
+            return UserTile(
+                text: group['groupName'],
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          GroupChatPage(groupId: group['groupId']),
+                    ),
+                  );
+                },
+                lastMessage: 'last message',
+                profileUrl: group['pf_path'],
+                timestamp: Timestamp.now());
+          },
+        );
+      },
     );
   }
 
@@ -195,7 +254,7 @@ class _GroupPageState extends State<GroupPage> {
               body: Center(
                 child: Container(
                   width: 350,
-                  height: 500,
+                  height: 550,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
@@ -256,7 +315,7 @@ class _GroupPageState extends State<GroupPage> {
                     Text('Select Group Members'),
                     Padding(
                       padding: const EdgeInsets.only(
-                          right: 40, left: 40, bottom: 10, top: 10),
+                          right: 40, left: 40, bottom: 10, top: 20),
                       child: TextField(
                         controller: searchController,
                         onChanged: (value) {
@@ -281,10 +340,26 @@ class _GroupPageState extends State<GroupPage> {
                       child: _buildUserList(),
                     ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(right: 8, bottom: 10),
+                          padding: const EdgeInsets.only(
+                              left: 40, bottom: 10, top: 10),
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                Color(0xFF0DB0A4),
+                              ),
+                            ),
+                            onPressed: () {
+                              _createGroup();
+                            },
+                            child: Text('CREATE'),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              right: 40, bottom: 10, top: 10),
                           child: ElevatedButton(
                             style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all<Color>(
@@ -295,7 +370,7 @@ class _GroupPageState extends State<GroupPage> {
                               Navigator.of(context).pop();
                               searchController.clear();
                             },
-                            child: Text('Cancel'),
+                            child: Text('CANCEL'),
                           ),
                         ),
                       ],
