@@ -2,12 +2,15 @@ import 'dart:io';
 
 import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/group_service.dart';
+import 'package:app_chat/chat/photo_service.dart';
 import 'package:app_chat/model/group_model.dart';
 import 'package:app_chat/utils/intl.dart';
 import 'package:app_chat/utils/message_box.dart';
+import 'package:app_chat/utils/snack_bar.dart';
 import 'package:app_chat/utils/video_player_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class GroupChatPage extends StatefulWidget {
   final String groupId;
@@ -23,6 +26,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
   final AuthService _authService = AuthService();
   final ScrollController _scrollController = ScrollController();
   final GroupService _groupService = GroupService();
+  final PhotoService _photoService = PhotoService();
   late Future<GroupModel> groupFuture;
 
   @override
@@ -57,19 +61,44 @@ class _GroupChatPageState extends State<GroupChatPage> {
       String? messageText =
           _messageController.text.isNotEmpty ? _messageController.text : null;
 
-      // String? videoUrl;
-      // if (video != null) {
-      //   videoUrl = await _photoService.storeVideoFileToStorage(
-      //     file: video,
-      //     reference: 'videos/${DateTime.now().millisecondsSinceEpoch}.mp4',
-      //     contentType: 'video/mp4',
-      //   );
-      // }
+      String? videoUrl;
+      if (video != null) {
+        videoUrl = await _photoService.storeVideoFileToStorage(
+          file: video,
+          reference: 'videos/${DateTime.now().millisecondsSinceEpoch}.mp4',
+          contentType: 'video/mp4',
+        );
+      }
 
-      await _groupService.sendGpMessage(widget.groupId, messageText);
+      String? imageUrl;
+      if (image != null) {
+        var uuid = Uuid();
+        String uniqueFileName = uuid.v4();
+        try {
+          imageUrl = await _photoService.storeImageToStorage(
+              file: image,
+              reference: 'chat_images/${widget.groupId}/$uniqueFileName');
+        } catch (e) {
+          print(e.toString());
+        }
+      }
+
+      await _groupService.sendGpMessage(widget.groupId, messageText,
+          imageUrl: imageUrl, videoUrl: videoUrl);
 
       _messageController.clear();
       scrollDown();
+    }
+  }
+
+  void selectVideo() async {
+    File? videoFile = await _photoService.pickVideo(onFail: (String message) {
+      showSnackBar(context, message);
+    });
+    Navigator.pop(context);
+
+    if (videoFile != null) {
+      sendMessage1(video: videoFile);
     }
   }
 
@@ -168,7 +197,9 @@ class _GroupChatPageState extends State<GroupChatPage> {
                       title: Text('Gallery'),
                     ),
                     ListTile(
-                      onTap: () {},
+                      onTap: () {
+                        selectVideo();
+                      },
                       leading: Icon(Icons.video_library),
                       title: Text('Video'),
                     ),
@@ -178,16 +209,16 @@ class _GroupChatPageState extends State<GroupChatPage> {
             );
 
             // Proceed only if the user made a choice
-            // if (fromCamera != null) {
-            //   File? image = await _photoService.pickImage(
-            //     fromCamera: fromCamera,
-            //     onFail: (error) => print(error),
-            //   );
-            //   if (image != null) {
-            //     // Send the image
-            //     sendMessage1(image: image);
-            //   }
-            // }
+            if (fromCamera != null) {
+              File? image = await _photoService.pickImage(
+                fromCamera: fromCamera,
+                onFail: (error) => print(error),
+              );
+              if (image != null) {
+                // Send the image
+                sendMessage1(image: image);
+              }
+            }
           },
           icon: Icon(
             Icons.link,
