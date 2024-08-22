@@ -15,9 +15,31 @@ class _GroupPageState extends State<GroupPage> {
   final ChatService _chatService = ChatService();
   final AuthService _authService = AuthService();
   final TextEditingController groupNameController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+
+  List<Map<String, dynamic>> allUsers = [];
+  List<Map<String, dynamic>> filteredUsers = [];
 
   String userImage =
       "https://firebasestorage.googleapis.com/v0/b/app-chat-97ecb.appspot.com/o/Profiles%2Fprofile_image.jpg?alt=media&token=6ffca4f1-2e1c-4d5c-950b-0e1bd7b2076c";
+
+  @override
+  void initState() {
+    super.initState();
+    searchController.addListener(_filterUsers);
+  }
+
+  void _filterUsers() {
+    // Call this method to filter when user types
+    setState(() {
+      filteredUsers = allUsers.where((user) {
+        return user['username']
+            .toLowerCase()
+            .contains(searchController.text.toLowerCase());
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,10 +103,6 @@ class _GroupPageState extends State<GroupPage> {
               thickness: 0.8,
             ),
           ),
-          Expanded(
-              child: Center(
-            child: Text('Groups'),
-          )),
         ],
       ),
       floatingActionButton: _FloatingButton(context),
@@ -99,148 +117,182 @@ class _GroupPageState extends State<GroupPage> {
       },
       child: Icon(Icons.add),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(100), // Rounded corners
+        borderRadius: BorderRadius.circular(100),
       ),
       backgroundColor: Color(0xFF0DB0A4),
       foregroundColor: Colors.black,
     );
   }
 
+  Widget _buildUserList() {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _chatService.getUserStream(),
+      builder: (context, snapshot) {
+        // Handle errors
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+
+        // Show loading indicator
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        // Store all users fetched from the stream
+        allUsers = snapshot.data!;
+
+        // Filter users based on the current search input
+        filteredUsers = allUsers
+            .where((user) => user['username']
+                .toLowerCase()
+                .contains(searchController.text.toLowerCase()))
+            .toList();
+
+        // Return the list view of filtered users
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 4.0, left: 4),
+            child: Scrollbar(
+              showTrackOnHover: true,
+              thickness: 8.0,
+              radius: Radius.circular(10),
+              child: ListView(
+                children: filteredUsers
+                    .map<Widget>(
+                        (userData) => _buildUserListItem(userData, context))
+                    .toList(),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showFullScreenPopup(BuildContext context) {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        opaque: false, // Make the background transparent
-        pageBuilder: (BuildContext context, _, __) {
-          return Scaffold(
-            backgroundColor: Colors.black.withOpacity(0.5),
-            body: Center(
-              child: Container(
-                width: 350,
-                height: 500,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(children: [
-                  SizedBox(
-                    height: 20,
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Scaffold(
+              backgroundColor: Colors.black.withOpacity(0.5),
+              body: Center(
+                child: Container(
+                  width: 350,
+                  height: 500,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 55,
-                        backgroundImage: NetworkImage(userImage),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: InkWell(
-                          onTap: () {
-                            showModalBottomSheet(
+                  child: Column(children: [
+                    SizedBox(height: 20),
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 55,
+                          backgroundImage: NetworkImage(userImage),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: InkWell(
+                            onTap: () {
+                              showModalBottomSheet(
                                 context: context,
-                                builder: ((context) => SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height /
-                                              5,
-                                      child: Column(
-                                        children: [
-                                          ListTile(
-                                            onTap: () {},
-                                            leading: Icon(Icons.camera_alt),
-                                            title: Text('Camera'),
-                                          ),
-                                          ListTile(
-                                            onTap: () {},
-                                            leading: Icon(Icons.image),
-                                            title: Text('Gallery'),
-                                          )
-                                        ],
+                                builder: (context) => SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height / 5,
+                                  child: Column(
+                                    children: [
+                                      ListTile(
+                                        onTap: () {},
+                                        leading: Icon(Icons.camera_alt),
+                                        title: Text('Camera'),
                                       ),
-                                    )));
-                          },
-                          child: CircleAvatar(
+                                      ListTile(
+                                        onTap: () {},
+                                        leading: Icon(Icons.image),
+                                        title: Text('Gallery'),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: CircleAvatar(
                               radius: 15,
                               backgroundColor: Colors.greenAccent,
                               child: Icon(
                                 Icons.camera_alt_outlined,
                                 color: Colors.white,
-                              )),
+                              ),
+                            ),
+                          ),
                         ),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  TextBox(
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    TextBox(
                       controller: groupNameController,
                       obscureText: false,
-                      hintText: ' Group Name'),
-                  Text('Select Group Memebers'),
-                  Expanded(
-                    child: _buildUserList(),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8, bottom: 10),
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  Color(0xFF0DB0A4))),
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close the popup
-                          },
-                          child: Text('Cancel'),
+                      hintText: 'Group Name',
+                    ),
+                    Text('Select Group Members'),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          right: 40, left: 40, bottom: 10, top: 10),
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: (value) {
+                          setState(() {
+                            filteredUsers = allUsers.where((user) {
+                              return user['username']
+                                  .toLowerCase()
+                                  .contains(value.toLowerCase());
+                            }).toList();
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'SEARCH',
+                          hintStyle: TextStyle(letterSpacing: 2),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          prefixIcon: Icon(Icons.search),
                         ),
                       ),
-                    ],
-                  )
-                ]),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildUserList() {
-    return StreamBuilder(
-        stream: _chatService.getUserStream(),
-        builder: (context, snapshot) {
-          //error
-          if (snapshot.hasError) {
-            return Text('Error in 1');
-          }
-
-          // Loading
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(), // Loading animation
-            );
-          }
-
-          //return List View
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 4.0, left: 4),
-              child: Scrollbar(
-                showTrackOnHover: true,
-                thickness: 8.0,
-                radius: Radius.circular(10),
-                child: ListView(
-                  children: snapshot.data!
-                      .map<Widget>(
-                          (userData) => _buildUserListItem(userData, context))
-                      .toList(),
+                    ),
+                    Expanded(
+                      child: _buildUserList(),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8, bottom: 10),
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                Color(0xFF0DB0A4),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              searchController.clear();
+                            },
+                            child: Text('Cancel'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]),
                 ),
               ),
-            ),
-          );
-        });
+            );
+          },
+        );
+      },
+    );
   }
 
   Widget _buildUserListItem(
@@ -271,5 +323,12 @@ class _GroupPageState extends State<GroupPage> {
     } else {
       return Container();
     }
+  }
+
+  @override
+  void dispose() {
+    searchController.removeListener(_filterUsers);
+    searchController.dispose();
+    super.dispose();
   }
 }
