@@ -49,6 +49,8 @@ class _GroupPageState extends State<GroupPage> {
         selectedUsers.add(userId);
       }
     });
+    Navigator.pop(context);
+    _showFullScreenPopup(context);
     print("+++++++++++++++++++++++++++++++++++++");
     print(selectedUsers);
     print("+++++++++++++++++++++++++++++++++++++");
@@ -82,7 +84,6 @@ class _GroupPageState extends State<GroupPage> {
           ),
         ],
       ),
-      drawer: MyDrawer(),
       body: Column(
         children: [
           Padding(
@@ -324,31 +325,20 @@ class _GroupPageState extends State<GroupPage> {
             borderRadius: BorderRadius.circular(10),
             color: isSelected ? Colors.lightBlueAccent : Color(0xFFCAEEEB),
           ),
-          child: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Center(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    radius: 15,
-                    backgroundImage: NetworkImage(userData['pf_path']),
-                  ),
-                  title: Text(userData['username'] ?? "No Name"),
-                  trailing: Checkbox(
-                    value: isSelected,
-                    onChanged: (value) {
-                      setState(() {
-                        if (value == true) {
-                          selectedUsers.add(userData['uid']);
-                        } else {
-                          selectedUsers.remove(userData['uid']);
-                        }
-                      });
-                      print(selectedUsers);
-                    },
-                  ),
-                ),
-              );
-            },
+          child: Center(
+            child: ListTile(
+              leading: CircleAvatar(
+                radius: 15,
+                backgroundImage: NetworkImage(userData['pf_path']),
+              ),
+              title: Text(userData['username'] ?? "No Name"),
+              trailing: Checkbox(
+                value: isSelected,
+                onChanged: (value) {
+                  _toggleUserSelection(userData['uid']);
+                },
+              ),
+            ),
           ),
         ),
       );
