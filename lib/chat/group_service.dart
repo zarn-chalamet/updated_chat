@@ -97,4 +97,79 @@ class GroupService {
             descending: false) // Order messages by timestamp, newest first
         .snapshots();
   }
+
+  // Get the group last message
+  Future<GroupMessageModel?> getGpLastMessage(String groupId) async {
+    print("getLastMessage called for groupId: $groupId");
+
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('groups')
+          .doc(groupId)
+          .collection('messages')
+          .orderBy('timestamp',
+              descending: true) // Order by timestamp descending
+          .limit(1) // Limit to the last message
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        var data = snapshot.docs.first.data() as Map<String, dynamic>;
+
+        String senderID =
+            data['senderID'] ?? ''; // Default to empty string if null
+        String messageId =
+            data['messageId'] ?? ''; // Default to empty string if null
+        String senderName =
+            data['senderName'] ?? ''; // Default to empty string if null
+        Timestamp timestamp = data['timestamp'] ??
+            Timestamp.now(); // Default to current timestamp if null
+
+        print("============================================");
+        print('text: ' + (data['textMsg'] ?? 'null'));
+        print('image: ' + (data['imageUrl'] ?? 'null'));
+        print('video: ' + (data['videoUrl'] ?? 'null'));
+        print("============================================");
+
+        String currentUserId = _authService.getCurrentUserID();
+
+        if (data['textMsg'] == null && data['imageUrl'] != null) {
+          return GroupMessageModel(
+            messageId: messageId,
+            groupId: groupId,
+            senderId: senderID,
+            senderName: senderName,
+            timestamp: timestamp,
+            textMsg: senderID == currentUserId
+                ? "You sent a photo"
+                : "$senderName sent a photo",
+          );
+        } else if (data['textMsg'] == null && data['videoUrl'] != null) {
+          return GroupMessageModel(
+            messageId: messageId,
+            groupId: groupId,
+            senderId: senderID,
+            senderName: senderName,
+            timestamp: timestamp,
+            textMsg: senderID == currentUserId
+                ? "You sent a video"
+                : "$senderName sent a video",
+          );
+        } else {
+          return GroupMessageModel(
+            messageId: messageId,
+            groupId: groupId,
+            senderId: senderID,
+            senderName: senderName,
+            timestamp: timestamp,
+            textMsg: data['textMsg'] ?? '', // Default to empty string if null
+          );
+        }
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Error in getLastMessage: $e");
+      return null;
+    }
+  }
 }

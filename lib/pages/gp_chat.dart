@@ -109,7 +109,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
         automaticallyImplyLeading: false,
         leading: IconButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pushReplacementNamed(context, '/groups');
             },
             icon: Icon(Icons.arrow_back)),
         centerTitle: false,

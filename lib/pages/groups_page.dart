@@ -1,6 +1,7 @@
 import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/chat_service.dart';
 import 'package:app_chat/chat/group_service.dart';
+import 'package:app_chat/model/gp_message.dart';
 import 'package:app_chat/pages/gp_chat.dart';
 import 'package:app_chat/utils/textfield.dart';
 import 'package:app_chat/utils/user_tile.dart';
@@ -160,26 +161,89 @@ class _GroupPageState extends State<GroupPage> {
           return Text('No groups found');
         }
 
-        return ListView.builder(
-          itemCount: groups.length,
-          itemBuilder: (context, index) {
-            final group = groups[index];
-            return UserTile(
-                text: group['groupName'],
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          GroupChatPage(groupId: group['groupId']),
-                    ),
-                  );
-                },
-                lastMessage: 'last message',
-                profileUrl: group['pf_path'],
-                timestamp: Timestamp.now());
-          },
+        return ListView(
+          children: snapshot.data!
+              .map<Widget>(
+                  (groupData) => _buildGroupListItem(groupData, context))
+              .toList(),
         );
+      },
+    );
+  }
+
+  Widget _buildGroupListItem(
+      Map<String, dynamic> groupData, BuildContext context) {
+    print("FutureBuilder called for groupId: ${groupData['groupId']}");
+    return FutureBuilder<GroupMessageModel?>(
+      future: _groupService.getGpLastMessage(groupData['groupId']),
+      builder: (context, snapshot) {
+        print("============================================");
+        print(snapshot.data?.textMsg);
+        print("============================================");
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return UserTile(
+              text: groupData['groupName'],
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        GroupChatPage(groupId: groupData['groupId']),
+                  ),
+                );
+              },
+              lastMessage: 'Loading...',
+              profileUrl: groupData['pf_path'],
+              timestamp: Timestamp.now());
+        } else if (snapshot.hasError) {
+          print("FutureBuilder error: ${snapshot.error}");
+          return UserTile(
+              text: groupData['groupName'],
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        GroupChatPage(groupId: groupData['groupId']),
+                  ),
+                );
+              },
+              lastMessage: 'Error loading message!',
+              profileUrl: groupData['pf_path'],
+              timestamp: Timestamp.now());
+        } else if (snapshot.hasData) {
+          final lastMessage = snapshot.data?.textMsg ?? "No messages yet";
+          final timestamp = snapshot.data?.timestamp ?? Timestamp.now();
+          return UserTile(
+              text: groupData['groupName'],
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        GroupChatPage(groupId: groupData['groupId']),
+                  ),
+                );
+              },
+              lastMessage: lastMessage,
+              profileUrl: groupData['pf_path'],
+              timestamp: timestamp);
+        } else {
+          return UserTile(
+              text: groupData['groupName'],
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        GroupChatPage(groupId: groupData['groupId']),
+                  ),
+                );
+              },
+              lastMessage: 'No message yet!',
+              profileUrl: groupData['pf_path'],
+              timestamp: Timestamp.now());
+        }
       },
     );
   }
