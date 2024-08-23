@@ -289,6 +289,8 @@ class _GroupChatPageState extends State<GroupChatPage> {
           itemCount: docs.length,
           itemBuilder: (context, index) {
             DocumentSnapshot currentDoc = docs[index];
+            DocumentSnapshot? nextDoc =
+                index < docs.length - 1 ? docs[index + 1] : null;
             DocumentSnapshot? previousDoc = index > 0 ? docs[index - 1] : null;
 
             return _buildMessageItem(
@@ -296,6 +298,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
               previousDoc != null
                   ? previousDoc['timestamp'] as Timestamp
                   : null,
+              nextDoc != null ? nextDoc['senderId'] as String : null,
             );
           },
         );
@@ -303,7 +306,8 @@ class _GroupChatPageState extends State<GroupChatPage> {
     );
   }
 
-  Widget _buildMessageItem(DocumentSnapshot doc, Timestamp? previousTimestamp) {
+  Widget _buildMessageItem(DocumentSnapshot doc, Timestamp? previousTimestamp,
+      String? nextSenderId) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     Timestamp currentTimestamp = data['timestamp'] as Timestamp;
 
@@ -312,10 +316,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
     String currentUserId = _authService.getCurrentUserID()?.trim() ?? '';
 
     bool isCurrentUser = senderId == currentUserId;
-
-    print('SENDER ID - [$senderId]');
-    print('current user Id - [$currentUserId]');
-    print('isCurrentUser: $isCurrentUser');
+    bool showProfileImage = senderId != nextSenderId;
 
     bool showDateLabel =
         shouldShowDateLabel(currentTimestamp, previousTimestamp);
@@ -339,8 +340,8 @@ class _GroupChatPageState extends State<GroupChatPage> {
               isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
             margin: EdgeInsets.all(5),
+            padding: EdgeInsets.only(left: showProfileImage ? 0 : 48),
             decoration: BoxDecoration(
-              // color: isCurrentUser ? Colors.blue[100] : Colors.grey[200],
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -349,13 +350,13 @@ class _GroupChatPageState extends State<GroupChatPage> {
                   ? MainAxisAlignment.end
                   : MainAxisAlignment.start,
               children: [
-                if (!isCurrentUser) // Show profile image for other users
+                if (!isCurrentUser &&
+                    showProfileImage) // Show profile image only if it's the last message in the sequence
                   Padding(
                     padding: const EdgeInsets.only(
                         right: 8.0), // Space between image and message
                     child: FutureBuilder<String>(
-                      future: _photoService.getProfileUrl(_authService
-                          .getCurrentUserID()), // Use the method you provided
+                      future: _photoService.getProfileUrl(senderId),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -386,14 +387,12 @@ class _GroupChatPageState extends State<GroupChatPage> {
                         ? CrossAxisAlignment.end
                         : CrossAxisAlignment.start,
                     children: [
-                      // Check for text message
                       if (data['textMsg'] != null &&
                           data['textMsg']!.isNotEmpty)
                         MessageBox(
                           isCurrentUser: isCurrentUser,
                           message: data['textMsg']!,
                         ),
-                      // Check for image URL
                       if (data['imageUrl'] != null &&
                           data['imageUrl']!.isNotEmpty)
                         Padding(
@@ -405,7 +404,6 @@ class _GroupChatPageState extends State<GroupChatPage> {
                             fit: BoxFit.cover,
                           ),
                         ),
-                      // Check for video URL
                       if (data['videoUrl'] != null &&
                           data['videoUrl']!.isNotEmpty)
                         Padding(
