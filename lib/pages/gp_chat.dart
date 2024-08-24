@@ -4,6 +4,7 @@ import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/group_service.dart';
 import 'package:app_chat/chat/photo_service.dart';
 import 'package:app_chat/model/group_model.dart';
+import 'package:app_chat/pages/group_profile.dart';
 import 'package:app_chat/utils/intl.dart';
 import 'package:app_chat/utils/message_box.dart';
 import 'package:app_chat/utils/snack_bar.dart';
@@ -125,6 +126,13 @@ class _GroupChatPageState extends State<GroupChatPage> {
               return ListTile(
                 onTap: () {
                   // Navigate to group settings or profile if needed
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          GroupProfile(groupId: widget.groupId),
+                    ),
+                  );
                 },
                 leading: CircleAvatar(
                   backgroundImage: NetworkImage(group.pf_path),

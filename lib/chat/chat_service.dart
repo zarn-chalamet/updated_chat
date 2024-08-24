@@ -158,7 +158,15 @@ class ChatService {
         );
       } else {
         // Return the original message if it exists
-        return Message.fromMap(data);
+        return Message(
+          senderID: senderID,
+          senderEmail: senderEmail,
+          receiverID: otherUserID,
+          message: senderID == userID
+              ? "You: ${data['message']}"
+              : "${data['message']}",
+          timestamp: data['timestamp'],
+        );
       }
     } else {
       return null;

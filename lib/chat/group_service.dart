@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:app_chat/auth/auth_service.dart';
+import 'package:app_chat/chat/photo_service.dart';
 import 'package:app_chat/model/gp_message.dart';
 import 'package:app_chat/model/group_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class GroupService {
   final AuthService _authService = AuthService();
+  final PhotoService _photoService = PhotoService();
   //create Group
   Future<DocumentReference> createGroupInFireStore(
       String groupName, List<String> memberIds) async {
@@ -116,7 +120,7 @@ class GroupService {
         var data = snapshot.docs.first.data() as Map<String, dynamic>;
 
         String senderID =
-            data['senderID'] ?? ''; // Default to empty string if null
+            data['senderId'] ?? ''; // Default to empty string if null
         String messageId =
             data['messageId'] ?? ''; // Default to empty string if null
         String senderName =
@@ -131,6 +135,11 @@ class GroupService {
         print("============================================");
 
         String currentUserId = _authService.getCurrentUserID();
+
+        print("================================================");
+        print('currentUserId: $currentUserId');
+        print('senderID: $senderID');
+        print("================================================");
 
         if (data['textMsg'] == null && data['imageUrl'] != null) {
           return GroupMessageModel(
@@ -161,7 +170,9 @@ class GroupService {
             senderId: senderID,
             senderName: senderName,
             timestamp: timestamp,
-            textMsg: data['textMsg'] ?? '', // Default to empty string if null
+            textMsg: senderID == currentUserId
+                ? "You: ${data['textMsg']}"
+                : "$senderName: ${data['textMsg']}",
           );
         }
       } else {
@@ -170,6 +181,24 @@ class GroupService {
     } catch (e) {
       print("Error in getLastMessage: $e");
       return null;
+    }
+  }
+
+  Future<void> updateGroupProfile(String groupId, File newGpProfile) async {
+    try {
+      String downloadUrl = await _photoService.storeImageToStorage(
+          file: newGpProfile, reference: 'Profiles/$groupId');
+
+      // Update the group document in Firestore with the new profile image URL
+      await FirebaseFirestore.instance
+          .collection('groups')
+          .doc(groupId)
+          .update({
+        'pf_path': downloadUrl,
+      });
+    } catch (e) {
+      print("Error updating group profile: $e");
+      throw e; // Optionally rethrow the error to handle it in the calling function
     }
   }
 }
