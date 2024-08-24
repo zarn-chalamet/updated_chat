@@ -1,11 +1,11 @@
 import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/chat_service.dart';
-import 'package:app_chat/pages/gp_chat.dart';
 import 'package:app_chat/pages/single_chat.dart';
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final int selectedIndex;
+  const SearchPage({super.key, required this.selectedIndex});
 
   @override
   State<SearchPage> createState() => _SearchPageState();

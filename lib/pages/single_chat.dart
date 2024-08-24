@@ -4,6 +4,7 @@ import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/chat_service.dart';
 import 'package:app_chat/chat/photo_service.dart';
 import 'package:app_chat/pages/receiver_profile.dart';
+import 'package:app_chat/pages/top_navbar.dart';
 import 'package:app_chat/utils/intl.dart';
 import 'package:app_chat/utils/message_box.dart';
 import 'package:app_chat/utils/snack_bar.dart';
@@ -103,7 +104,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
     File? videoFile = await _photoService.pickVideo(onFail: (String message) {
       showSnackBar(context, message);
     });
-    Navigator.pop(context);
+    Navigator.of(context).pop();
 
     if (videoFile != null) {
       sendMessage1(video: videoFile);
@@ -117,7 +118,11 @@ class _SingleChatPageState extends State<SingleChatPage> {
         automaticallyImplyLeading: false,
         leading: IconButton(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/topnav');
+              Navigator.pop(context);
+              // Navigator.pushReplacement(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: (context) => TopNavBar(selectedIndex: 0)));
             },
             icon: Icon(Icons.arrow_back)),
         centerTitle: false,

@@ -34,12 +34,9 @@ class MyApp extends StatelessWidget {
       theme: Provider.of<ThemeProvider>(context).themeData,
       routes: {
         '/home': (context) => HomePage(),
-        '/profile': (context) => Profile(),
         '/setting': (context) => Setting(),
         '/groups': (context) => GroupPage(),
         '/authgate': (context) => AuthGate(),
-        '/search': (context) => SearchPage(),
-        '/topnav': (context) => TopNavBar(),
         // '/loginorsignup': (context) => LoginOrSignUp(),
       },
     );

@@ -2,10 +2,14 @@ import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/photo_service.dart';
 import 'package:app_chat/pages/groups_page.dart';
 import 'package:app_chat/pages/home.dart';
+import 'package:app_chat/pages/profile.dart';
+import 'package:app_chat/pages/search_page.dart';
 import 'package:flutter/material.dart';
 
 class TopNavBar extends StatefulWidget {
-  const TopNavBar({super.key});
+  int selectedIndex;
+
+  TopNavBar({super.key, required this.selectedIndex});
 
   @override
   State<TopNavBar> createState() => _TopNavBarState();
@@ -14,9 +18,14 @@ class TopNavBar extends StatefulWidget {
 class _TopNavBarState extends State<TopNavBar> {
   final AuthService _authService = AuthService();
   final PhotoService _photoService = PhotoService();
-  int _selectedIndex = 0; // Tracks the selected tab
-
+  late int _selectedIndex;
   final PageController _pageController = PageController();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.selectedIndex;
+  }
 
   @override
   void dispose() {
@@ -28,14 +37,23 @@ class _TopNavBarState extends State<TopNavBar> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CHAT APP'),
+        title: Padding(
+          padding: const EdgeInsets.only(left: 7),
+          child: const Text('CHAT APP'),
+        ),
         elevation: 0,
         backgroundColor: Colors.transparent,
-        leading: const SizedBox(),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/search');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      SearchPage(selectedIndex: _selectedIndex),
+                ),
+              );
             },
             icon: Icon(Icons.search),
           ),
@@ -43,29 +61,33 @@ class _TopNavBarState extends State<TopNavBar> {
             padding: const EdgeInsets.only(right: 15),
             child: GestureDetector(
               onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/profile');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        Profile(selectedIndex: _selectedIndex),
+                  ),
+                );
               },
               child: FutureBuilder<String>(
-                future: _photoService.getProfileUrl(_authService
-                    .getCurrentUserID()), // Use the method you provided
+                future: _photoService
+                    .getProfileUrl(_authService.getCurrentUserID()),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const CircleAvatar(
-                      backgroundImage: AssetImage(
-                          'assets/profile/profile_male.jpg'), // Placeholder image
+                      backgroundImage:
+                          AssetImage('assets/profile/profile_male.jpg'),
                       radius: 20,
                     );
                   } else if (snapshot.hasError || !snapshot.hasData) {
                     return const CircleAvatar(
-                      backgroundImage: AssetImage(
-                          'assets/profile/profile_male.jpg'), // Fallback image in case of error
+                      backgroundImage:
+                          AssetImage('assets/profile/profile_male.jpg'),
                       radius: 20,
                     );
                   } else {
                     return CircleAvatar(
-                      backgroundImage: NetworkImage(snapshot
-                          .data!), // Load the profile image from the URL
+                      backgroundImage: NetworkImage(snapshot.data!),
                       radius: 20,
                     );
                   }
@@ -83,54 +105,53 @@ class _TopNavBarState extends State<TopNavBar> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 0;
-                      });
-                      _pageController.animateToPage(
-                        0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: Text(
-                      'Chats',
-                      style: TextStyle(
-                        fontWeight: _selectedIndex == 0
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        fontSize: 15,
-                      ),
-                    )),
+                  onTap: () {
+                    setState(() {
+                      _selectedIndex = 0;
+                    });
+                    _pageController.animateToPage(
+                      0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  child: Text(
+                    'Chats',
+                    style: TextStyle(
+                      fontWeight: _selectedIndex == 0
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
                 GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 1;
-                      });
-                      _pageController.animateToPage(
-                        1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: Text(
-                      'Groups',
-                      style: TextStyle(
-                        fontWeight: _selectedIndex == 1
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        fontSize: 15,
-                      ),
-                    )),
+                  onTap: () {
+                    setState(() {
+                      _selectedIndex = 1;
+                    });
+                    _pageController.animateToPage(
+                      1,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  child: Text(
+                    'Groups',
+                    style: TextStyle(
+                      fontWeight: _selectedIndex == 1
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
           const Padding(
-            padding: EdgeInsets.only(left: 25, right: 25, top: 5, bottom: 5),
-            child: Divider(
-              color: Colors.grey,
-              thickness: 0.8,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+            child: Divider(color: Colors.grey, thickness: 0.8),
           ),
           Expanded(
             child: PageView(
@@ -141,21 +162,12 @@ class _TopNavBarState extends State<TopNavBar> {
                 });
               },
               children: [
-                HomePage(),
-                const GroupPage(),
+                _selectedIndex == 0 ? HomePage() : GroupPage(),
               ],
             ),
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildChatsPage() {
-    return Center(child: Text('Chats Page'));
-  }
-
-  Widget _buildGroupsPage() {
-    return Center(child: Text('Groups Page'));
   }
 }

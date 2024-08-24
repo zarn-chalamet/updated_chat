@@ -5,6 +5,7 @@ import 'package:app_chat/chat/group_service.dart';
 import 'package:app_chat/chat/photo_service.dart';
 import 'package:app_chat/model/group_model.dart';
 import 'package:app_chat/pages/group_profile.dart';
+import 'package:app_chat/pages/top_navbar.dart';
 import 'package:app_chat/utils/intl.dart';
 import 'package:app_chat/utils/message_box.dart';
 import 'package:app_chat/utils/snack_bar.dart';
@@ -110,7 +111,10 @@ class _GroupChatPageState extends State<GroupChatPage> {
         automaticallyImplyLeading: false,
         leading: IconButton(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/topnav');
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => TopNavBar(selectedIndex: 1)));
             },
             icon: Icon(Icons.arrow_back)),
         centerTitle: false,
@@ -292,6 +296,12 @@ class _GroupChatPageState extends State<GroupChatPage> {
         }
 
         List<DocumentSnapshot> docs = snapshot.data!.docs;
+
+        // Scroll to bottom after the first frame is rendered
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          scrollDown();
+        });
+
         return ListView.builder(
           controller: _scrollController,
           itemCount: docs.length,
@@ -321,7 +331,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
     // Using trim to avoid any whitespace issues
     String senderId = data['senderId']?.trim() ?? '';
-    String currentUserId = _authService.getCurrentUserID()?.trim() ?? '';
+    String currentUserId = _authService.getCurrentUserID().trim();
 
     bool isCurrentUser = senderId == currentUserId;
     bool showProfileImage = senderId != nextSenderId;

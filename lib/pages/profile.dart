@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/photo_service.dart';
+import 'package:app_chat/pages/top_navbar.dart';
 import 'package:app_chat/utils/snack_bar.dart';
 import 'package:flutter/material.dart';
 
 class Profile extends StatefulWidget {
-  Profile({super.key});
+  final int selectedIndex;
+  Profile({super.key, required this.selectedIndex});
 
   @override
   State<Profile> createState() => _ProfileState();
@@ -35,7 +37,10 @@ class _ProfileState extends State<Profile> {
       userImage = newProfileUrl.isNotEmpty ? newProfileUrl : userImage;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Profile()),
+        MaterialPageRoute(
+            builder: (context) => Profile(
+                  selectedIndex: widget.selectedIndex,
+                )),
       );
     });
   }
@@ -90,7 +95,11 @@ class _ProfileState extends State<Profile> {
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/topnav');
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          TopNavBar(selectedIndex: widget.selectedIndex)));
             },
             icon: Icon(Icons.arrow_back_outlined)),
         title: Text(''),

@@ -17,7 +17,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final ChatService _chatService = ChatService();
-  final PhotoService _photoService = PhotoService();
   final AuthService _authService = AuthService();
 
   @override
