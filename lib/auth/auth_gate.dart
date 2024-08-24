@@ -1,5 +1,6 @@
 import 'package:app_chat/auth/login_or_signup.dart';
 import 'package:app_chat/pages/home.dart';
+import 'package:app_chat/pages/top_navbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,7 @@ class AuthGate extends StatelessWidget {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return HomePage();
+            return TopNavBar();
           } else {
             return const LoginOrSignUp();
           }

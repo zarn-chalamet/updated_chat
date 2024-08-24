@@ -24,52 +24,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: const Text('CHAT APP'),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        leading: Text(''),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.search),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 15),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/profile');
-              },
-              child: FutureBuilder<String>(
-                future: _photoService.getProfileUrl(_authService
-                    .getCurrentUserID()), // Use the method you provided
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircleAvatar(
-                      backgroundImage: AssetImage(
-                          'assets/profile/profile_male.jpg'), // Placeholder image
-                      radius: 20,
-                    );
-                  } else if (snapshot.hasError || !snapshot.hasData) {
-                    return CircleAvatar(
-                      backgroundImage: AssetImage(
-                          'assets/profile/profile_male.jpg'), // Fallback image in case of error
-                      radius: 20,
-                    );
-                  } else {
-                    return CircleAvatar(
-                      backgroundImage: NetworkImage(snapshot
-                          .data!), // Load the profile image from the URL
-                      radius: 20,
-                    );
-                  }
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
       // drawer: MyDrawer(),
       body: _bodyy(),
     );
@@ -78,36 +32,6 @@ class _HomePageState extends State<HomePage> {
   Widget _bodyy() {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 3),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              GestureDetector(
-                  onTap: () {},
-                  child: Text(
-                    'Chats',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                  )),
-              GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, '/groups');
-                  },
-                  child: Text(
-                    'Groups',
-                    style: TextStyle(fontWeight: FontWeight.w400, fontSize: 15),
-                  ))
-            ],
-          ),
-        ),
-        Padding(
-          padding:
-              const EdgeInsets.only(left: 25, right: 25, top: 5, bottom: 5),
-          child: Divider(
-            color: Colors.grey,
-            thickness: 0.8,
-          ),
-        ),
         Expanded(child: _buildUserList()),
       ],
     );
