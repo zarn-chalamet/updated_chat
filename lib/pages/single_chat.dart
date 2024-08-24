@@ -4,7 +4,6 @@ import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/chat_service.dart';
 import 'package:app_chat/chat/photo_service.dart';
 import 'package:app_chat/pages/receiver_profile.dart';
-import 'package:app_chat/pages/top_navbar.dart';
 import 'package:app_chat/utils/intl.dart';
 import 'package:app_chat/utils/message_box.dart';
 import 'package:app_chat/utils/snack_bar.dart';

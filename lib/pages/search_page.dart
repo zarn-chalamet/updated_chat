@@ -1,6 +1,7 @@
 import 'package:app_chat/auth/auth_service.dart';
 import 'package:app_chat/chat/chat_service.dart';
 import 'package:app_chat/pages/single_chat.dart';
+import 'package:app_chat/pages/top_navbar.dart';
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
@@ -111,7 +112,11 @@ class _SearchPageState extends State<SearchPage> {
             padding: const EdgeInsets.only(right: 5),
             child: TextButton(
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/topnav');
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              TopNavBar(selectedIndex: widget.selectedIndex)));
                 },
                 child: const Text(
                   "Cancel",
@@ -185,7 +190,7 @@ class _SearchPageState extends State<SearchPage> {
           child: Center(
             child: ListTile(
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => SingleChatPage(
@@ -208,10 +213,10 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  @override
-  void dispose() {
-    searchController.removeListener(_filterUsers);
-    searchController.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   searchController.removeListener(_filterUsers);
+  //   // searchController.dispose();
+  //   super.dispose();
+  // }
 }
