@@ -101,14 +101,22 @@ class _GroupPageState extends State<GroupPage> {
         final groups = snapshot.data ?? [];
 
         if (groups.isEmpty) {
-          return Text('No groups found');
+          return Center(child: Text('No groups found'));
         }
 
-        return ListView(
-          children: snapshot.data!
-              .map<Widget>(
-                  (groupData) => _buildGroupListItem(groupData, context))
-              .toList(),
+        return Padding(
+          padding: const EdgeInsets.only(left: 4, right: 4),
+          child: Scrollbar(
+            showTrackOnHover: true,
+            thickness: 8.0,
+            radius: Radius.circular(10),
+            child: ListView(
+              children: snapshot.data!
+                  .map<Widget>(
+                      (groupData) => _buildGroupListItem(groupData, context))
+                  .toList(),
+            ),
+          ),
         );
       },
     );

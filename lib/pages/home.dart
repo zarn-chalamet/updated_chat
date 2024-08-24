@@ -53,11 +53,19 @@ class _HomePageState extends State<HomePage> {
           }
 
           //return List View
-          return ListView(
-            children: snapshot.data!
-                .map<Widget>(
-                    (userData) => _buildUserListItem(userData, context))
-                .toList(),
+          return Padding(
+            padding: const EdgeInsets.only(right: 4, left: 4),
+            child: Scrollbar(
+              showTrackOnHover: true,
+              thickness: 8.0,
+              radius: Radius.circular(10),
+              child: ListView(
+                children: snapshot.data!
+                    .map<Widget>(
+                        (userData) => _buildUserListItem(userData, context))
+                    .toList(),
+              ),
+            ),
           );
         });
   }

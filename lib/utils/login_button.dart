@@ -8,9 +8,9 @@ class LoginButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 40, right: 40),
+      padding: const EdgeInsets.only(left: 0),
       child: Container(
-          width: MediaQuery.sizeOf(context).width,
+          width: 330,
           height: 55,
           child: MaterialButton(
             onPressed: onPressed,
