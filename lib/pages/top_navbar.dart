@@ -34,7 +34,9 @@ class _TopNavBarState extends State<TopNavBar> {
         leading: const SizedBox(),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, '/search');
+            },
             icon: Icon(Icons.search),
           ),
           Padding(

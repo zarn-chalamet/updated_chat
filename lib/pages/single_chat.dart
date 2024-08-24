@@ -117,7 +117,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
         automaticallyImplyLeading: false,
         leading: IconButton(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/home');
+              Navigator.pushReplacementNamed(context, '/topnav');
             },
             icon: Icon(Icons.arrow_back)),
         centerTitle: false,

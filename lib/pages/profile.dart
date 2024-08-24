@@ -90,7 +90,7 @@ class _ProfileState extends State<Profile> {
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/home');
+              Navigator.pushReplacementNamed(context, '/topnav');
             },
             icon: Icon(Icons.arrow_back_outlined)),
         title: Text(''),

@@ -3,7 +3,9 @@ import 'package:app_chat/firebase_options.dart';
 import 'package:app_chat/pages/groups_page.dart';
 import 'package:app_chat/pages/home.dart';
 import 'package:app_chat/pages/profile.dart';
+import 'package:app_chat/pages/search_page.dart';
 import 'package:app_chat/pages/setting.dart';
+import 'package:app_chat/pages/top_navbar.dart';
 import 'package:app_chat/theme/theme_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: AuthGate(),
       theme: Provider.of<ThemeProvider>(context).themeData,
       routes: {
@@ -35,6 +38,8 @@ class MyApp extends StatelessWidget {
         '/setting': (context) => Setting(),
         '/groups': (context) => GroupPage(),
         '/authgate': (context) => AuthGate(),
+        '/search': (context) => SearchPage(),
+        '/topnav': (context) => TopNavBar(),
         // '/loginorsignup': (context) => LoginOrSignUp(),
       },
     );
