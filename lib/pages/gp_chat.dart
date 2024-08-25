@@ -50,11 +50,23 @@ class _GroupChatPageState extends State<GroupChatPage> {
 
   void scrollDown() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: Duration(seconds: 1),
-        curve: Curves.fastOutSlowIn,
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController
+            .animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 1000),
+          curve: Curves.easeOut,
+        )
+            .then((_) {
+          // Check if it's not at the bottom after scrolling
+          if (_scrollController.position.pixels !=
+              _scrollController.position.maxScrollExtent) {
+            // Try scrolling again
+            _scrollController
+                .jumpTo(_scrollController.position.maxScrollExtent);
+          }
+        });
+      });
     }
   }
 
