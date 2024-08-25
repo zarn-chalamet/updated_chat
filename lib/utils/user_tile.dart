@@ -1,6 +1,6 @@
+import 'package:app_chat/utils/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class UserTile extends StatelessWidget {
   final String text;
@@ -20,7 +20,7 @@ class UserTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     DateTime dateTime = timestamp.toDate();
-    String formattedTime = DateFormat('hh:mm a').format(dateTime);
+    String formattedTime = formatTimestamp(dateTime);
 
     return GestureDetector(
         onTap: onTap,
@@ -67,7 +67,7 @@ class UserTile extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 25,
+              top: 29,
               right: 45,
               child: Text(
                 formattedTime,

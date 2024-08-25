@@ -38,7 +38,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
+      height: 130,
       width: 200,
       child: Stack(children: [
         CachedVideoPlayer(videoPlayerController),

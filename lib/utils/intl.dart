@@ -33,3 +33,20 @@ bool shouldShowDateLabel(
       currentDate.month != previousDate.month ||
       currentDate.day != previousDate.day;
 }
+
+String formatTimestamp(DateTime dateTime) {
+  DateTime now = DateTime.now();
+  DateTime startOfToday = DateTime(now.year, now.month, now.day);
+  DateTime startOfWeek = startOfToday.subtract(Duration(days: now.weekday - 1));
+
+  if (dateTime.isAfter(startOfToday)) {
+    // Message is from today
+    return DateFormat('hh:mm a').format(dateTime);
+  } else if (dateTime.isAfter(startOfWeek)) {
+    // Message is from this week
+    return DateFormat('EEE').format(dateTime); // Mon, Tue, etc.
+  } else {
+    // Message is older than this week
+    return DateFormat('MMM d').format(dateTime); // Aug 15, Jul 27, etc.
+  }
+}
