@@ -4,6 +4,7 @@ import 'package:app_chat/chat/group_service.dart';
 import 'package:app_chat/chat/photo_service.dart';
 import 'package:app_chat/model/group_model.dart';
 import 'package:app_chat/pages/gp_chat.dart';
+import 'package:app_chat/pages/gp_chat_photos.dart';
 import 'package:app_chat/utils/snack_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -206,7 +207,13 @@ class _GroupProfileState extends State<GroupProfile> {
                         style: TextStyle(letterSpacing: 2),
                       ),
                       trailing: Icon(Icons.arrow_forward_outlined),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    GroupChatPhotos(groupId: widget.groupId)));
+                      },
                     ),
                     SizedBox(
                       height: 10,

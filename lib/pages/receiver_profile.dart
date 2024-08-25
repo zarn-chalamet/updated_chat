@@ -1,4 +1,5 @@
 import 'package:app_chat/auth/auth_service.dart';
+import 'package:app_chat/pages/sg_chat_photos.dart';
 import 'package:flutter/material.dart';
 
 class ReceiverProfile extends StatefulWidget {
@@ -141,7 +142,15 @@ class _ReceiverProfileState extends State<ReceiverProfile> {
                         style: TextStyle(letterSpacing: 2),
                       ),
                       trailing: Icon(Icons.arrow_forward_outlined),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SingleChatPhotos(
+                                    currentUserId:
+                                        _authService.getCurrentUserID(),
+                                    receiverUserId: widget.receiverID)));
+                      },
                     ),
                     SizedBox(
                       height: 10,
