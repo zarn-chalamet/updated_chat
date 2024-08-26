@@ -38,7 +38,7 @@ class _TopNavBarState extends State<TopNavBar> {
     return Scaffold(
       appBar: AppBar(
         title: Padding(
-          padding: const EdgeInsets.only(left: 7),
+          padding: const EdgeInsets.only(left: 7, top: 2),
           child: const Text('CHAT APP'),
         ),
         elevation: 0,
@@ -55,7 +55,10 @@ class _TopNavBarState extends State<TopNavBar> {
                 ),
               );
             },
-            icon: Icon(Icons.search),
+            icon: Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Icon(Icons.search),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(right: 15),
